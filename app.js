@@ -94,7 +94,7 @@ var budgetController = (function(){
 		//BudgetController will call this method from function ctrlDeleteItem
 		deleteItem: function(type, id){
 			var ids, index;
-			console.log(type);
+			// console.log(type);
 
 			// id = 3
 			//ids = [1 3 4 7]
@@ -142,7 +142,7 @@ var budgetController = (function(){
 			var allPerc = data.allItems.exp.map(function(current){
 				return current.getPercentage();
 			});
-
+			console.log(allPerc);
 			return allPerc;
 		},
 
@@ -178,7 +178,8 @@ var UIController = (function (){
 		budgetIncomeLabel: '.budget__income--value',
 		budgetExpenseLabel: '.budget__expenses--value',
 		percentageLabel: '.budget__expenses--percentage',
-		container: '.container'
+		container: '.container',
+		expensesPerLabel: '.item__percentage'
 	}
 
 	//to create a public method in IIFE it should be returned by IIFE
@@ -207,7 +208,7 @@ var UIController = (function (){
 				html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
 				typ = DOMstrings.expenseCont;
 			}
-			console.log(typ);
+			// console.log(typ);
 			
 			//2. Replace placeholder text with actual data
 			newHTML = html.replace('%id%',obj.id);
@@ -261,6 +262,35 @@ var UIController = (function (){
 			}
 		},
 
+		//will receive percentage_array from controller
+		displayPercentages: function(percentage_array){
+
+			var fields = document.querySelectorAll(DOMstrings.expensesPerLabel); // will return a node list
+			// console.log(fields);
+
+			//this function is similar to for loop, for each iteration call callback function
+			var nodeListForEach = function(list, callback){
+
+				for(var i = 0; i<list.length; i++)
+				{
+					callback(list[i], i); // this callback function is passed as an argument just below 
+				}
+
+			}
+			nodeListForEach(fields, function(current, index){// similar to forEach array
+
+			   	if(percentage_array[index] >= 0)
+			   	{
+			   		current.textContent = percentage_array[index] + '%';
+			   	}
+			   	else
+			   	{
+			   		current.textContent = '---';
+			   	}
+			});
+
+		},
+
 		getDOMstrings: function(){
 			return DOMstrings; // we are exposing the DOMstrings object into the public
 		}
@@ -303,7 +333,7 @@ var controller = (function(budgetCtrl, UICtrl){
 
 		//6. return budget
 		var budget = budgetCtrl.getBudget()
-		console.log(budget);
+		// console.log(budget);
 
 		//7. display the total budget on UI
 		UICtrl.displayBudget(budget);
@@ -320,6 +350,7 @@ var controller = (function(budgetCtrl, UICtrl){
 
 		//3. update the UI with the new percentages
 		console.log(percentages);
+		UICtrl.displayPercentages(percentages);
 	}
 
 	var ctrlAddItem = function(){
