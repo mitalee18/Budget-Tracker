@@ -76,6 +76,27 @@ var budgetController = (function(){
 
 		},
 
+		//BudgetController will call this method from function ctrlDeleteItem
+		deleteItem: function(type, id){
+			var ids, index;
+			console.log(type);
+
+			// id = 3
+			//ids = [1 3 4 7]
+			// index = 1 and not 2
+			ids = data.allItems[type].map(function(current){ //callback function, map creates a new array of the return elements
+				return current.id;
+			});
+
+			index = ids.indexOf(id);
+
+			if(index !== -1)
+			{
+				data.allItems[type].splice(index, 1); //removing elements at a particular index use splice
+			}
+
+		},
+
 		calculateBudget: function(){
 			//sum of all incomes
 			calculate('inc');
@@ -170,6 +191,14 @@ var UIController = (function (){
 
 		},
 
+		deleteListItem : function(idSelector){
+			//we need a class name or id to remove it
+			//this case we will use id
+			//In JS we can only remove child
+			var child = document.getElementById(idSelector)
+			child.parentNode.removeChild(child);
+		},
+
 		clearField : function() {
 			var field, field_array;
 			//querySelectorAll returns a list and not an array
@@ -231,7 +260,6 @@ var controller = (function(budgetCtrl, UICtrl){
 				ctrlAddItem();
 			}	
 		});
-		// console.log(DOM.container);
 		
 		//event delegation
 		//////////////////
@@ -292,16 +320,16 @@ var controller = (function(budgetCtrl, UICtrl){
 			//itemId = inc-1
 			splitId = itemId.split('-'); // split method returns an array
 			type = splitId[0];
-			id = splitId[1];
+			id =parseInt(splitId[1]);//this is a string and not a number
 
 			//1. delete the item from the data structure 
-
+			budgetCtrl.deleteItem(type, id);
 
 			//2. delete the item from the UI
-
+			UICtrl.deleteListItem(itemId);
 
 			//3. Update and show the new budget
-
+			updateBudget();
 
 		}
 
