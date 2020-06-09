@@ -25,8 +25,22 @@ var budgetController = (function(){
 		total: {
 			exp: 0,
 			inc: 0
-		}		
+		},
+		budget: 0,
+		percentage: -1
 	};
+
+	//calculate total income and expenses
+	var calculate = function(type){
+		var sum = 0;
+
+		data.allItems[type].forEach(function(current){ //data.allitems[type].value.forEach(function(current){
+			sum += current.value; //current will become our object containing id, value, descrip
+		});
+
+		data.total[type] = sum;
+		// console.log(sum);
+	}
 
 	return {
 
@@ -62,6 +76,36 @@ var budgetController = (function(){
 
 		},
 
+		calculateBudget: function(){
+			//sum of all incomes
+			calculate('inc');
+
+			//sum of all expenses
+			calculate('exp');
+
+			//calculate budget = income - expenses
+			data.budget = data.total.inc - data.total.exp;
+
+			//calculate percentage of % expenses = expenses/income
+			if (data.total.inc > 0){
+				data.percentage = Math.round((data.total.exp / data.total.inc) * 100);	
+			}
+			else{
+				data.percentage = -1;
+			}
+		},
+
+
+		getBudget: function(){
+
+			return{
+				budget: data.budget,
+				percentage: data.percentage,
+				totalIncome: data.total.inc,
+				totalExpense: data.total.exp
+			}
+		},
+
 		testing: function(){
 			console.log(data);
 		}
@@ -79,7 +123,11 @@ var UIController = (function (){
 		inputAmount: '.add__value',
 		inputButton: '.add__btn',
 		incomeCont: '.income__list',
-		expenseCont: '.expenses__list'
+		expenseCont: '.expenses__list',
+		budgetLabel: '.budget__value',
+		budgetIncomeLabel: '.budget__income--value',
+		budgetExpenseLabel: '.budget__expenses--value',
+		percentageLabel: '.budget__expenses--percentage'
 	}
 
 	//to create a public method in IIFE it should be returned by IIFE
@@ -137,6 +185,23 @@ var UIController = (function (){
 			field_array[0].focus();
 		},
 
+		displayBudget: function(obj)
+		{
+			document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
+			document.querySelector(DOMstrings.budgetIncomeLabel).textContent = obj.totalIncome;
+			document.querySelector(DOMstrings.budgetExpenseLabel).textContent = obj.totalExpense;
+			
+
+
+			if(obj.percentage >= 0)
+			{
+				document.querySelector(DOMstrings.percentageLabel).textContent = obj.percentage + '%';
+			}
+			else{
+				document.querySelector(DOMstrings.percentageLabel).textContent = '---';
+			}
+		},
+
 		getDOMstrings: function(){
 			return DOMstrings; // we are exposing the DOMstrings object into the public
 		}
@@ -169,11 +234,14 @@ var controller = (function(budgetCtrl, UICtrl){
 
 	var updateBudget = function(){
 		//5. calculate the budget
+		budgetCtrl.calculateBudget();
 
 		//6. return budget
+		var budget = budgetCtrl.getBudget()
+		console.log(budget);
 
 		//7. display the total budget on UI
-
+		UICtrl.displayBudget(budget);
 	}
 
 
@@ -205,6 +273,12 @@ var controller = (function(budgetCtrl, UICtrl){
 	return{
 		init: function(){
 			// console.log('application has started');
+			UICtrl.displayBudget({
+				budget: 0,
+				percentage: -1,
+				totalIncome: 0,
+				totalExpense: 0
+			});
 			eventListeners();
 		}
 	};	
