@@ -127,7 +127,8 @@ var UIController = (function (){
 		budgetLabel: '.budget__value',
 		budgetIncomeLabel: '.budget__income--value',
 		budgetExpenseLabel: '.budget__expenses--value',
-		percentageLabel: '.budget__expenses--percentage'
+		percentageLabel: '.budget__expenses--percentage',
+		container: '.container'
 	}
 
 	//to create a public method in IIFE it should be returned by IIFE
@@ -148,12 +149,12 @@ var UIController = (function (){
 			//1. create HTML string with placeholder text
 			if(type === 'inc')
 			{
-				html ='<div class="item clearfix" id="income-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+				html ='<div class="item clearfix" id="inc-%id%"> <div class="item__description">%description%</div> <div class="right clearfix"> <div class="item__value">%value%</div> <div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
 				typ = DOMstrings.incomeCont;
 			}
 			else if(type === 'exp')
 			{
-				html = '<div class="item clearfix" id="expense-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+				html = '<div class="item clearfix" id="exp-%id%"><div class="item__description">%description%</div><div class="right clearfix"><div class="item__value">%value%</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
 				typ = DOMstrings.expenseCont;
 			}
 			console.log(typ);
@@ -223,13 +224,20 @@ var controller = (function(budgetCtrl, UICtrl){
 
 		//key press event happens on the global document
 		document.addEventListener('keypress', function(event){
-		//it should be executed only when "Enter key" is pressed, can be done by passing argument to the function
-		//which property is for older browsers
-		if (event.keyCode === 13 || event.which === 13) 
-		{
-			ctrlAddItem();
-		}	
-	});
+			//it should be executed only when "Enter key" is pressed, can be done by passing argument to the function
+			//which property is for older browsers
+			if (event.keyCode === 13 || event.which === 13) 
+			{
+				ctrlAddItem();
+			}	
+		});
+		// console.log(DOM.container);
+		
+		//event delegation
+		//////////////////
+		// We need the cancel button to work in both income and expense, thus attach the event handler to  <div class="container clearfix">
+		document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
+
 	}
 
 	var updateBudget = function(){
@@ -267,6 +275,36 @@ var controller = (function(budgetCtrl, UICtrl){
 			//8. Calculate and update budget
 			updateBudget();
 		}
+
+	}
+
+	var ctrlDeleteItem = function(event){ //in an anonymous function as well as in a callback function like this we have access to the event causing the action
+		var itemId, splitId, type, id;
+
+		// we need the event object because we want to know which element triggered the event
+		//check which element triggered the event
+		itemId = event.target.parentNode.parentNode.parentNode.parentNode.id;
+		//we need to move 4 times up the button to get the div we are interested in 
+
+		//if id exists
+		if(itemId)
+		{
+			//itemId = inc-1
+			splitId = itemId.split('-'); // split method returns an array
+			type = splitId[0];
+			id = splitId[1];
+
+			//1. delete the item from the data structure 
+
+
+			//2. delete the item from the UI
+
+
+			//3. Update and show the new budget
+
+
+		}
+
 
 	}
 	//To call the eventListener functions which are now private in an iife we need to create an initialization function
