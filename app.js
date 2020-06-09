@@ -7,6 +7,7 @@ var budgetController = (function(){
 		this.id = id;
 		this.description = description;
 		this.value = value;
+		this.individualPercentage = -1;
 	}
 
 	var Income = function(id, description, value)
@@ -15,6 +16,20 @@ var budgetController = (function(){
 		this.description = description;
 		this.value = value;
 	}
+
+	Expense.prototype.calcPercentage = function (totIncome){
+
+		if (totIncome > 0){
+			this.individualPercentage = Math.round((this.value / totIncome) * 100);	
+		}
+		else{
+			this.individualPercentage = -1
+		}
+	};
+
+	Expense.prototype.getPercentage = function(){
+		return this.individualPercentage; 
+	};
 
 	//objects created using Expense and Income function Object are stored in data, ie in allitems
 	var data = {
@@ -116,6 +131,20 @@ var budgetController = (function(){
 			}
 		},
 
+		calculatePercentages : function(){
+
+			data.allItems.exp.forEach(function(current){
+				current.calcPercentage(data.total.inc);
+			});
+		},
+
+		getPercentages: function(){
+			var allPerc = data.allItems.exp.map(function(current){
+				return current.getPercentage();
+			});
+
+			return allPerc;
+		},
 
 		getBudget: function(){
 
@@ -280,6 +309,18 @@ var controller = (function(budgetCtrl, UICtrl){
 		UICtrl.displayBudget(budget);
 	}
 
+	var updateExpensePercentage = function(){
+
+		//similar to update budget function
+		//1. calculate the percentages
+		budgetCtrl.calculatePercentages();
+
+		//2. read percentage from budget controller 
+		var percentages = budgetCtrl.getPercentages();
+
+		//3. update the UI with the new percentages
+		console.log(percentages);
+	}
 
 	var ctrlAddItem = function(){
 		var input, newItem;
@@ -300,8 +341,11 @@ var controller = (function(budgetCtrl, UICtrl){
 			//4. Clearing the field
 			UICtrl.clearField();
 
-			//8. Calculate and update budget
+			//5. Calculate and update budget
 			updateBudget();
+
+			//6. Calculate & update percentages
+			updateExpensePercentage();
 		}
 
 	}
@@ -330,6 +374,9 @@ var controller = (function(budgetCtrl, UICtrl){
 
 			//3. Update and show the new budget
 			updateBudget();
+
+			//4. Calculate & update percentages
+			updateExpensePercentage();
 
 		}
 
