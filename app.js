@@ -215,6 +215,15 @@ var UIController = (function (){
 			return (type === 'exp' ? '-' : '+') +' '+ int + '.'+dec;
 		};
 
+	//this function is similar to for loop, for each iteration call callback function
+	var nodeListForEach = function(list, callback){
+
+		for(var i = 0; i<list.length; i++)
+		{
+			callback(list[i], i); // this callback function is passed as an argument just below 
+		}
+	};
+
 
 	//to create a public method in IIFE it should be returned by IIFE
 	return{
@@ -285,8 +294,7 @@ var UIController = (function (){
 			document.querySelector(DOMstrings.budgetLabel).textContent = formatNum(obj.budget, type);
 			document.querySelector(DOMstrings.budgetIncomeLabel).textContent = formatNum(obj.totalIncome, 'inc');
 			document.querySelector(DOMstrings.budgetExpenseLabel).textContent = formatNum(obj.totalExpense, 'exp');
-			
-
+		
 
 			if(obj.percentage >= 0)
 			{
@@ -303,15 +311,17 @@ var UIController = (function (){
 			var fields = document.querySelectorAll(DOMstrings.expensesPerLabel); // will return a node list
 			// console.log(fields);
 
+
 			//this function is similar to for loop, for each iteration call callback function
-			var nodeListForEach = function(list, callback){
+			// var nodeListForEach = function(list, callback){
 
-				for(var i = 0; i<list.length; i++)
-				{
-					callback(list[i], i); // this callback function is passed as an argument just below 
-				}
+			// 	for(var i = 0; i<list.length; i++)
+			// 	{
+			// 		callback(list[i], i); // this callback function is passed as an argument just below 
+			// 	}
 
-			}
+			// }
+
 			nodeListForEach(fields, function(current, index){// similar to forEach array
 
 			   	if(percentage_array[index] >= 0)
@@ -326,6 +336,7 @@ var UIController = (function (){
 
 		},
 
+		//calling from init function in controller
 		displayMonth: function(){
 			var now, year, month, months;
 			
@@ -335,6 +346,19 @@ var UIController = (function (){
 			year = now.getFullYear();
 			month = now.getMonth();
 			document.querySelector(DOMstrings.dateLabel).textContent = months[month] + ' ' + year;
+		},
+
+		changedType: function(){
+			var fields = document.querySelectorAll(
+				DOMstrings.inputType + ','+
+				DOMstrings.inputDescription+','+
+				DOMstrings.inputAmount);
+
+			nodeListForEach(fields, function(current){
+				current.classList.toggle('red-focus'); //to add redfocus as a class we use classList.toggle to toggle. Ie if we have red-focus class it will remove it and if we don't it will add it.
+			});
+
+			document.querySelector(DOMstrings.inputButton).classList.toggle('red');
 		},
 
 		
@@ -371,6 +395,8 @@ var controller = (function(budgetCtrl, UICtrl){
 		//////////////////
 		// We need the cancel button to work in both income and expense, thus attach the event handler to  <div class="container clearfix">
 		document.querySelector(DOM.container).addEventListener('click', ctrlDeleteItem);
+
+		document.querySelector(DOM.inputType).addEventListener('change', UICtrl.changedType)
 
 	}
 
