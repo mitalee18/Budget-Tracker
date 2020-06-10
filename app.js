@@ -8,14 +8,14 @@ var budgetController = (function(){
 		this.description = description;
 		this.value = value;
 		this.individualPercentage = -1;
-	}
+	};
 
 	var Income = function(id, description, value)
 	{
 		this.id = id;
 		this.description = description;
 		this.value = value;
-	}
+	};
 
 	Expense.prototype.calcPercentage = function (totIncome){
 
@@ -55,7 +55,7 @@ var budgetController = (function(){
 
 		data.total[type] = sum;
 		// console.log(sum);
-	}
+	};
 
 	return {
 
@@ -142,7 +142,7 @@ var budgetController = (function(){
 			var allPerc = data.allItems.exp.map(function(current){
 				return current.getPercentage();
 			});
-			console.log(allPerc);
+			// console.log(allPerc);
 			return allPerc;
 		},
 
@@ -179,8 +179,42 @@ var UIController = (function (){
 		budgetExpenseLabel: '.budget__expenses--value',
 		percentageLabel: '.budget__expenses--percentage',
 		container: '.container',
-		expensesPerLabel: '.item__percentage'
+		expensesPerLabel: '.item__percentage',
+		dateLabel: '.budget__title--month'
 	}
+
+	var formatNum = function(num, type){
+			var numSplit, int, dec, sign;
+
+			/* 
+			+ or - before the number
+			exactly 2 decimal points
+			comma separating the thousands
+
+			2310.457 -> +2,310.46
+			2000 --> + 2,000.00
+			*/
+
+			num = Math.abs(num);
+			num = num.toFixed(2); //method of number prototype
+
+			numSplit = num.split('.');
+
+			int = numSplit[0];
+			if(int.length) // will give us number of total digits present in our number // here our number is a string
+			{
+				if(int.length>3)
+				{
+					int = int.substr(0,int.length - 3) + ',' + int.substr(int.length - 3, 3); //input: 2310 output: 2,310
+					//input: 23510, output: 23,510
+				}
+				
+			}
+			dec = numSplit[1];
+
+			return (type === 'exp' ? '-' : '+') +' '+ int + '.'+dec;
+		};
+
 
 	//to create a public method in IIFE it should be returned by IIFE
 	return{
@@ -213,7 +247,7 @@ var UIController = (function (){
 			//2. Replace placeholder text with actual data
 			newHTML = html.replace('%id%',obj.id);
 			newHTML = newHTML.replace('%description%', obj.description);
-			newHTML = newHTML.replace('%value%',obj.value);
+			newHTML = newHTML.replace('%value%',formatNum(obj.value, type));
 
 			//3. Insert the HTML into the DOM
 			var d1 = document.querySelector(typ);
@@ -246,10 +280,11 @@ var UIController = (function (){
 		},
 
 		displayBudget: function(obj)
-		{
-			document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
-			document.querySelector(DOMstrings.budgetIncomeLabel).textContent = obj.totalIncome;
-			document.querySelector(DOMstrings.budgetExpenseLabel).textContent = obj.totalExpense;
+		{	
+			obj.budget > 0 ? type = 'inc': type = 'exp'
+			document.querySelector(DOMstrings.budgetLabel).textContent = formatNum(obj.budget, type);
+			document.querySelector(DOMstrings.budgetIncomeLabel).textContent = formatNum(obj.totalIncome, 'inc');
+			document.querySelector(DOMstrings.budgetExpenseLabel).textContent = formatNum(obj.totalExpense, 'exp');
 			
 
 
@@ -291,6 +326,18 @@ var UIController = (function (){
 
 		},
 
+		displayMonth: function(){
+			var now, year, month, months;
+			
+			months = ['January', 'February','March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+			
+			now = new Date();
+			year = now.getFullYear();
+			month = now.getMonth();
+			document.querySelector(DOMstrings.dateLabel).textContent = months[month] + ' ' + year;
+		},
+
+		
 		getDOMstrings: function(){
 			return DOMstrings; // we are exposing the DOMstrings object into the public
 		}
@@ -349,7 +396,7 @@ var controller = (function(budgetCtrl, UICtrl){
 		var percentages = budgetCtrl.getPercentages();
 
 		//3. update the UI with the new percentages
-		console.log(percentages);
+		// console.log(percentages);
 		UICtrl.displayPercentages(percentages);
 	}
 
@@ -417,6 +464,7 @@ var controller = (function(budgetCtrl, UICtrl){
 	return{
 		init: function(){
 			// console.log('application has started');
+			UICtrl.displayMonth();
 			UICtrl.displayBudget({
 				budget: 0,
 				percentage: -1,
