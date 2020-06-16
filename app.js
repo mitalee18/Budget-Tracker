@@ -169,13 +169,14 @@ var budgetController = (function(){
 
 			budget = (data.budget / data.total.inc) * 100
 			chart_data.budget = budget;
-			// console.log(data.allItems.exp.length);
-			for(var i = 0; i < data.allItems.exp.length; i++)
-			{	
-				val = data.allItems.exp[i].individualPercentage;
+			if(data.allItems.exp.length !== 0)
+			{
+				for(var i = 0; i < data.allItems.exp.length; i++)
+				{	
+					val = data.allItems.exp[i].individualPercentage;
 
-				switch(data.allItems.exp[i].category)
-				{
+					switch(data.allItems.exp[i].category)
+					{
 					case 'Food': food += val;
 								 chart_data.food = food;
 								 break;
@@ -191,8 +192,16 @@ var budgetController = (function(){
 					case 'Others': others += val;
 								 chart_data.others = others;
 								 break;
-
+					}
 				}
+			}
+			else
+			{
+				chart_data.food = food;
+				chart_data.clothing = clothing;
+				chart_data.transport = transport;
+				chart_data.entertainment = entertainment;
+				chart_data.others = others;
 			}
 
 			var field = [chart_data.budget, chart_data.food, chart_data.clothing, chart_data.transport, chart_data.entertainment, chart_data.others];
@@ -646,6 +655,9 @@ var controller = (function(budgetCtrl, UICtrl){
 
 			//4. Calculate & update percentages
 			updateExpensePercentage();
+
+			//5. Update Category percentage
+			updateCategory();
 
 		}
 
