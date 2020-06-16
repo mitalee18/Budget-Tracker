@@ -24,28 +24,37 @@ body {
 }
 
 .right { float: right; }
-.red { color: #FF5049 !important; }
-.red-focus:focus { border: 1px solid #FF5049 !important; }
+.green { color: #28B9B5 !important; }
+.green-focus:focus { border: 1px solid #28B9B5 !important; }
 
 /**********************************************
 *** TOP PART
 **********************************************/
 
 .top {
-    height: 40vh;
+    height: 40%;
     background-image: linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)), url(back.png);
     background-size: cover;
     background-position: center;
     position: relative;
+    width: 100%
 }
 
 .budget {
     position: absolute;
+    float: left;
     width: 350px;
     top: 50%;
-    left: 50%;
+    left: 30%;
     transform: translate(-50%, -50%);
     color: #fff;
+}
+.chart {
+    position: absolute;
+    width: 350px;
+    top: 50%;
+    left: 70%;
+    transform: translate(-50%, -50%);
 }
 
 .budget__title {
@@ -136,6 +145,7 @@ body {
     transition: border 0.3s;
 }
 
+#output,
 .add__description,
 .add__value {
     border: 1px solid #e7e7e7;
@@ -149,6 +159,8 @@ body {
     transition: border 0.3s;
 }
 
+.add__type{width: 110px;}
+#output{width: 150px;}
 .add__description { width: 400px;}
 .add__value { width: 100px;}
 
@@ -170,7 +182,7 @@ body {
 .add__description:focus,
 .add__value:focus {
     outline: none;
-    border: 1px solid #28B9B5;
+    border: 1px solid #FF5049;
 }
 
 .add__btn:focus { outline: none; }

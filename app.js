@@ -2,12 +2,13 @@
 var budgetController = (function(){
 	
 	//creating a data model for income and expense 
-	var Expense = function(id, description, value) //use prototype to create functions of object
+	var Expense = function(id, description, value, category) //use prototype to create functions of object
 	{
 		this.id = id;
 		this.description = description;
 		this.value = value;
 		this.individualPercentage = -1;
+		this.category = category;
 	};
 
 	var Income = function(id, description, value)
@@ -45,6 +46,15 @@ var budgetController = (function(){
 		percentage: -1
 	};
 
+	var chart_data = {
+		budget: 0,
+		food: 0,
+		clothing: 0,
+		transport: 0,
+		entertainment: 0,
+		others: 0
+	}
+
 	//calculate total income and expenses
 	var calculate = function(type){
 		var sum = 0;
@@ -59,7 +69,7 @@ var budgetController = (function(){
 
 	return {
 
-		addItem: function(type, des, amount){
+		addItem: function(type, des, amount, category){
 			var newItem, Id;
 
 			//[1 2 3 4 5], next id = 6
@@ -80,7 +90,7 @@ var budgetController = (function(){
 				newItem = new Income(Id, des, amount);
 			}
 			else{
-				newItem = new Expense(Id, des, amount);	
+				newItem = new Expense(Id, des, amount, category);	
 			}
 			
 			//push it into our data structure
@@ -146,6 +156,50 @@ var budgetController = (function(){
 			return allPerc;
 		},
 
+		calculateCategory: function(){
+			//do somethings
+			//club different categories together and return them to controller for further processing
+			var food, clothing, transport, entertainment, others, budget, val;
+			food = 0;
+			clothing = 0;
+			transport = 0;
+			entertainment = 0;
+			others = 0;
+			budget = 0;
+
+			budget = (data.budget / data.total.inc) * 100
+			chart_data.budget = budget;
+			// console.log(data.allItems.exp.length);
+			for(var i = 0; i < data.allItems.exp.length; i++)
+			{	
+				val = data.allItems.exp[i].individualPercentage;
+
+				switch(data.allItems.exp[i].category)
+				{
+					case 'Food': food += val;
+								 chart_data.food = food;
+								 break;
+					case 'Clothing': clothing += val;
+								 chart_data.clothing = clothing;
+								 break;
+					case 'Transport': transport += val;
+								 chart_data.transport = transport;
+								 break;
+					case 'Entertainment': entertainment += val;
+								 chart_data.entertainment = entertainment;
+								 break;
+					case 'Others': others += val;
+								 chart_data.others = others;
+								 break;
+
+				}
+			}
+
+			var field = [chart_data.budget, chart_data.food, chart_data.clothing, chart_data.transport, chart_data.entertainment, chart_data.others];
+			return field;
+
+		},
+
 		getBudget: function(){
 
 			return{
@@ -153,11 +207,12 @@ var budgetController = (function(){
 				percentage: data.percentage,
 				totalIncome: data.total.inc,
 				totalExpense: data.total.exp
-			}
+			};
 		},
 
 		testing: function(){
 			console.log(data);
+			console.log(chart_data);
 		}
 	};
 
@@ -170,6 +225,7 @@ var UIController = (function (){
 	var DOMstrings = {
 		inputType: '.add__type',
 		inputDescription:'.add__description',
+		inputCategory: '#output',
 		inputAmount: '.add__value',
 		inputButton: '.add__btn',
 		incomeCont: '.income__list',
@@ -180,7 +236,7 @@ var UIController = (function (){
 		percentageLabel: '.budget__expenses--percentage',
 		container: '.container',
 		expensesPerLabel: '.item__percentage',
-		dateLabel: '.budget__title--month'
+		dateLabel: '.budget__title--month',
 	}
 
 	var formatNum = function(num, type){
@@ -229,11 +285,23 @@ var UIController = (function (){
 	return{
 
 		getinput: function(){ // will return to controller
-			return {
-				type: document.querySelector(DOMstrings.inputType).value, // will be either inc or exp
-				description: document.querySelector(DOMstrings.inputDescription).value, // will get user description
-				amount: parseFloat(document.querySelector(DOMstrings.inputAmount).value) // will get the amount user entered, convert string to 
-			};
+			
+			if(document.querySelector(DOMstrings.inputType).value === 'inc')
+			{ return{
+					type: document.querySelector(DOMstrings.inputType).value, // will be either inc or exp
+					description: document.querySelector(DOMstrings.inputDescription).value, // will get user description
+					amount: parseFloat(document.querySelector(DOMstrings.inputAmount).value) // will get the amount user entered, convert string to
+				};
+			}
+			else
+			{  return{
+					type: document.querySelector(DOMstrings.inputType).value, // will be either inc or exp
+					description: document.querySelector(DOMstrings.inputDescription).value, // will get user description
+					amount: parseFloat(document.querySelector(DOMstrings.inputAmount).value), // will get the amount user entered, convert string to
+					category: document.querySelector(DOMstrings.inputCategory).value
+				};
+			} 
+		
 		
 		},
 
@@ -336,6 +404,48 @@ var UIController = (function (){
 
 		},
 
+		//call from updateCategory from controller
+		generateGraph: function(fields){
+            var myChart = document.getElementById('myChart').getContext('2d');
+
+    		var massPopChart = new Chart(myChart, {
+       		       type: 'doughnut', // bar, horizontalBar, pie, line, doughnut, radar, polarArea
+        		   data: {
+            	           labels: ['Budget', 'Food', 'Clothing','Transport', 'Entertainment', 'Others'],
+            	           datasets: [{
+                                        label: 'Budget Tracker',
+                		                data: fields,
+                                        backgroundColor: [
+                                                '#97cc04',
+                                                '#323031',
+                                                '#ffc857',
+                                                '#db3a34',
+                                                '#084c61',
+                                                '#177e89',
+                                        ],
+                                        borderWidth: 0,
+                                        hoverBorderWidth: 3,
+                                        hoverBorderColor: 'White'
+                            }]
+                    },
+                    options: {
+                            title: {
+                                text: '% of expenses and remaining budget',
+                                display: true,
+                                fontSize: 18,
+                                fontColor: 'White'
+                            },
+                            legend: {
+                                position: 'right',
+                                labels:{
+                                    fontColor: 'White'
+                            }
+                    }
+                }
+            });	
+            document.querySelector('.chart').style.display = 'block';
+		},
+
 		//calling from init function in controller
 		displayMonth: function(){
 			var now, year, month, months;
@@ -349,16 +459,50 @@ var UIController = (function (){
 		},
 
 		changedType: function(){
+			var cat, catOption;
 			var fields = document.querySelectorAll(
 				DOMstrings.inputType + ','+
 				DOMstrings.inputDescription+','+
-				DOMstrings.inputAmount);
+				DOMstrings.inputAmount+','+
+				DOMstrings.inputCategory);
 
+			var options = {
+				inc: {
+					salary: 'Salary',
+					freelancing: 'Freelancing',
+					stocks: 'Stocks',
+					others: 'Others'
+				},
+				exp: {
+					food: 'Food',
+					clothing: 'Clothing',
+					transport: 'Transport',
+					entertainment: 'Entertainment',
+					others: 'Others'
+				}
+			}
 			nodeListForEach(fields, function(current){
-				current.classList.toggle('red-focus'); //to add redfocus as a class we use classList.toggle to toggle. Ie if we have red-focus class it will remove it and if we don't it will add it.
+				current.classList.toggle('green-focus'); //to add redfocus as a class we use classList.toggle to toggle. Ie if we have red-focus class it will remove it and if we don't it will add it.
 			});
 
-			document.querySelector(DOMstrings.inputButton).classList.toggle('red');
+			catOption = ""
+			if (document.querySelector(DOMstrings.inputType).value === 'exp')
+			{	
+				for (cat in options.exp)
+				{
+					catOption += "<option>"+options.exp[cat]+'</option>';
+				}
+				
+			}
+			else
+			{
+				for (cat in options.inc)
+				{
+					catOption += "<option>"+options.inc[cat]+'</option>';
+				}
+			}
+			document.getElementById('output').innerHTML = catOption;
+			document.querySelector(DOMstrings.inputButton).classList.toggle('green');
 		},
 
 		
@@ -426,6 +570,17 @@ var controller = (function(budgetCtrl, UICtrl){
 		UICtrl.displayPercentages(percentages);
 	}
 
+	// called from ctrlAddItem() in controller
+	var updateCategory = function(){
+		//1. calculate % of each category from budgetCtrl
+		var fieldsArr = budgetCtrl.calculateCategory();
+		console.log(fieldsArr);
+
+		//2. Update Graph in UI
+		UICtrl.generateGraph(fieldsArr);
+
+	}
+
 	var ctrlAddItem = function(){
 		var input, newItem;
 
@@ -436,7 +591,14 @@ var controller = (function(budgetCtrl, UICtrl){
 		if(input.description !== "" && !isNaN(input.amount) && input.amount > 0)
 		{
 			//2. add the item to the budget controller, pass this object to addListItem method in UIController
-			newItem = budgetCtrl.addItem(input.type, input.description, input.amount);
+			if(input.type === 'inc')
+			{
+				newItem = budgetCtrl.addItem(input.type, input.description, input.amount, null);	
+			}
+			else
+			{
+				newItem = budgetCtrl.addItem(input.type, input.description, input.amount, input.category);
+			}
 
 			//3. add the new item to the user interface
 			UICtrl.addListItem(newItem, input.type);
@@ -450,6 +612,9 @@ var controller = (function(budgetCtrl, UICtrl){
 
 			//6. Calculate & update percentages
 			updateExpensePercentage();
+
+			//7. Update Category percentage
+			updateCategory();
 		}
 
 	}
@@ -498,6 +663,9 @@ var controller = (function(budgetCtrl, UICtrl){
 				totalExpense: 0
 			});
 			eventListeners();
+			//chart
+			document.querySelector('.chart').style.display = 'none';
+			// document.querySelector('.add__category').style.display = 'none';
 		}
 	};	
 
